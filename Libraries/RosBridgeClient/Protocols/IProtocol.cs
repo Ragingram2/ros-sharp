@@ -14,6 +14,7 @@ limitations under the License.
 */
 
 using System;
+using System.Collections.Generic;
 
 namespace RosSharp.RosBridgeClient.Protocols
 {
@@ -23,6 +24,8 @@ namespace RosSharp.RosBridgeClient.Protocols
         void Close();
         bool IsAlive();
         void Send(byte[] data);
+
+        List<string> getConsole();
 
         event EventHandler OnReceive;
         event EventHandler OnConnected;

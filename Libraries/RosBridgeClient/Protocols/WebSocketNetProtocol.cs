@@ -16,6 +16,7 @@ limitations under the License.
 // this class (System.Net.WebSockets) requires .NET 4.5+ to compile and Windows 8+ to work
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
@@ -45,6 +46,8 @@ namespace RosSharp.RosBridgeClient.Protocols
         public event EventHandler OnReceive;
         public event EventHandler OnConnected;
         public event EventHandler OnClosed;
+        private List<string> console = new List<string>();
+
 
         public WebSocketNetProtocol(string uriString, int queueSize = 1000)
         {
@@ -101,6 +104,10 @@ namespace RosSharp.RosBridgeClient.Protocols
             {
                 throw new Exception();
             }
+        }
+        public List<string> getConsole()
+        {
+            return console;
         }
 
         private async Task StartSend()

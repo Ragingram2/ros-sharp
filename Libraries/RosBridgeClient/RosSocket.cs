@@ -22,12 +22,15 @@ using System.Linq;
 using System.Threading;
 using RosSharp.RosBridgeClient.Protocols;
 
+
 namespace RosSharp.RosBridgeClient
 {
     public class RosSocket
     {
         public IProtocol protocol;
         public enum SerializerEnum { Microsoft, Newtonsoft_JSON, Newtonsoft_BSON}
+
+        private List<string> console = new List<string>();
 
         private Dictionary<string, Publisher> Publishers = new Dictionary<string, Publisher>();
         private Dictionary<string, Subscriber> Subscribers = new Dictionary<string, Subscriber>();
@@ -38,21 +41,25 @@ namespace RosSharp.RosBridgeClient
 
         public RosSocket(IProtocol protocol, SerializerEnum serializer = SerializerEnum.Microsoft)
         {
+            console.Add("[RosSocket] Starting Socket");
             this.protocol = protocol;
             switch (serializer)
             {
                 case SerializerEnum.Microsoft:
                     {
+                        console.Add("[RosSocket] Chose Microsoft Serializer");
                         Serializer = new MicrosoftSerializer();
                         break;
                     }
                 case SerializerEnum.Newtonsoft_JSON:
                     {
+                        console.Add("[RosSocket] Chose Newtonsoft Serializer");
                         Serializer = new NewtonsoftJsonSerializer();
                         break;
                     }
                 case SerializerEnum.Newtonsoft_BSON:
                     {
+                        console.Add("[RosSocket] Chose Newtonsoft BSON Serializer");
                         Serializer = new NewtonsoftBsonSerializer();
                         break;
                     }
@@ -63,6 +70,7 @@ namespace RosSharp.RosBridgeClient
 
         public void Close(int millisecondsWait = 0)
         {
+            console.Add("[RosSocket] Closing Socket");
             bool isAnyCommunicatorActive = Publishers.Count > 0 || Subscribers.Count > 0 || ServiceProviders.Count > 0;
 
             while (Publishers.Count > 0)
@@ -80,8 +88,12 @@ namespace RosSharp.RosBridgeClient
             {
                 Thread.Sleep(millisecondsWait);
             }
-
             protocol.Close();
+        }
+
+        public List<string> getConsole()
+        {
+            return console;
         }
 
         #region Publishers
@@ -114,6 +126,7 @@ namespace RosSharp.RosBridgeClient
 
         public string Subscribe<T>(string topic, SubscriptionHandler<T> subscriptionHandler, int throttle_rate = 0, int queue_length = 1, int fragment_size = int.MaxValue, string compression = "none") where T : Message
         {
+            console.Add("[RosSocket] I am subscribed to" + topic);
             string id;
             lock (SubscriberLock)
             {
@@ -178,11 +191,12 @@ namespace RosSharp.RosBridgeClient
         {
             byte[] buffer = ((MessageEventArgs)e).RawData;
             DeserializedObject jsonElement = Serializer.Deserialize(buffer);
-
+            console.Add("[RosSocket] Recived something");
             switch (jsonElement.GetProperty("op"))            
             {
                 case "publish":
                     {
+                        console.Add("[RosSocket] Recived Publish");
                         string topic = jsonElement.GetProperty("topic");
                         string msg = jsonElement.GetProperty("msg");
                         foreach (Subscriber subscriber in SubscribersOf(topic))

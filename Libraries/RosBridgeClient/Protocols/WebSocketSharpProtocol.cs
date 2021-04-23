@@ -14,7 +14,7 @@ limitations under the License.
 */
 
 using System;
-
+using System.Collections.Generic;
 using WebSocketSharp;
 
 namespace RosSharp.RosBridgeClient.Protocols
@@ -26,6 +26,7 @@ namespace RosSharp.RosBridgeClient.Protocols
         public event EventHandler OnClosed;
 
         private WebSocket WebSocket;
+        private List<string> console = new List<string>();
 
         public WebSocketSharpProtocol(string url)
         {
@@ -38,11 +39,13 @@ namespace RosSharp.RosBridgeClient.Protocols
                 
         public void Connect()
         {
+            console.Add("[WebSocketSharpProtocol] Connected");
             WebSocket.ConnectAsync();            
         }
 
         public void Close()
         {
+            console.Add("[WebSocketSharpProtocol] Disconnected");
             WebSocket.CloseAsync();
         }
 
@@ -52,12 +55,19 @@ namespace RosSharp.RosBridgeClient.Protocols
         }
 
         public void Send(byte[] data)
-        {
+        { 
+            console.Add("[WebSocketSharpProtocol] Sending: "+BitConverter.ToString(data));
             WebSocket.SendAsync(data, null);
+        }
+
+        public List<string> getConsole()
+        {
+            return console;
         }
         
         private void Receive(object sender, WebSocketSharp.MessageEventArgs e)
         {
+            console.Add("[WebSocketSharpProtocol] Recived in Socket");
             OnReceive?.Invoke(sender, new MessageEventArgs(e.RawData));
         }
 
